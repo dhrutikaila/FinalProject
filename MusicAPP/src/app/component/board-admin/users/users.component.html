@@ -1,0 +1,19 @@
+<div class="container">
+    <h4 class="bg-light">Users</h4>
+
+    <table class="table table-dark table-hover">
+
+        <tbody>
+            <tr *ngFor="let GetAlbums of playlists">
+                <td>{{ GetAlbums.profileId }}</td>
+                <td>{{GetAlbums.picture}}</td>
+                <td>{{ GetAlbums.title }}</td>
+                <td>{{ GetAlbums.createdOn }}</td>
+                <td> <button (click)="btnClick2();" class="btn btn-success"><i
+                            class='fa fa-play-circle fa-2x'></i></button></td>
+                <td> <button (click)="deletePl(playlistID)" class="btn btn-success"><i
+                            class='fa fa-minus-circle fa-2x'></i></button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

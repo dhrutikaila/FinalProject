@@ -1,0 +1,32 @@
+.custom-legend {
+  display: flex;
+  flex-direction: row;
+  padding-bottom: 0.5rem;
+  padding-top: 0.5rem;
+  padding-left: 0.75rem;
+  justify-content: stretch;
+}
+
+.custom-legend span {
+  height: 0.75rem;
+  width: 0.75rem;
+  background: white;
+  border-color: black;
+  border-width: thin;
+  border-style: solid;
+  border-radius: 0.15rem;
+  margin-right: 0.5rem;
+  margin-left: 0.0rem;
+}
+
+.custom-legend div {
+  display: flex;
+  flex-direction: row;
+}
+
+.custom-legend label {
+  white-space: nowrap;
+  font-size: 8pt;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  margin-right: 1.5rem;
+}

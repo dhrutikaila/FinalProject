@@ -1,0 +1,167 @@
+<!-- Search form -->
+
+<body class="bg-dark">
+
+
+    <div class="container p-1 bg-light rounded shadow-sm mb-4">
+
+        <form method="get" action="#" class="search_container">
+
+            <input [formControl]="search_word" class="form-control rounded-pill bg-light" type="text"
+                placeholder="Artist,Songs,or podcasts">
+
+        </form>
+        <span *ngIf="isLoading">now loading...</span>
+        <table>
+            <tr *ngFor=" let name of result_list">
+                <td>
+                    <p (click)="btnClick();" class='btn btn-secondary'>{{name}}</p>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="content">
+        <h4 class="text-light"> &nbsp; &nbsp; Browse All</h4>
+        <div class="card-deck">
+            <div class="card bg-info">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-info'>Hindi</p>
+                    <img src="../../assets/download (5).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-warning">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-warning'>Bollywood</p>
+                    <img src="../../assets/images (1).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-'>Kollywood Cream</p>
+                    <img src="../../assets/images (1)1.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-secondary">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-secondary'>EQUAL</p>
+                    <img src="../../assets/101.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-info">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-info'>Pop</p>
+                    <img src="../../assets/punjabi.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-danger">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-danger'>Bollywood</p>
+                    <img src="../../assets/images2.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-success">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-success'>Kollywood Cream</p>
+                    <img src="../../assets/images (3).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+
+        </div>
+
+        <br><br>
+        <div class="card-deck">
+            <div class="card bg-info">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-info'>Mood</p>
+                    <img src="../../assets/download (5).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-warning">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-warning'>Bollywood</p>
+                    <img src="../../assets/images (1).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-'>Kollywood Cream</p>
+                    <img src="../../assets/images (1)1.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-secondary">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-secondary'>EQUAL</p>
+                    <img src="../../assets/101.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-info">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-info'>Pop</p>
+                    <img src="../../assets/punjabi.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-danger">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-danger'>Bollywood</p>
+                    <img src="../../assets/images2.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-success">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-success'>Pop</p>
+                    <img src="../../assets/images (3).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+
+        </div>
+
+
+        <br><br>
+        <div class="card-deck">
+            <div class="card bg-info">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-info'>Pop</p>
+                    <img src="../../assets/download (5).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-warning">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-warning'>Bollywood</p>
+                    <img src="../../assets/images (1).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-'>Kollywood Cream</p>
+                    <img src="../../assets/images (1)1.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-secondary">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-secondary'>EQUAL</p>
+                    <img src="../../assets/101.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-info">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-info'>Pop</p>
+                    <img src="../../assets/punjabi.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-danger">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-danger'>Bollywood</p>
+                    <img src="../../assets/images2.jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+            <div class="card bg-success">
+                <div class="card-body text-left">
+                    <p (click)="btnClick();" class='btn btn-success'>Kollywood Cream</p>
+                    <img src="../../assets/images (3).jpg" class="card-img-top" alt="...">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</body>

@@ -1,0 +1,11 @@
+<div class="container">
+    <form #p="ngForm" (ngSubmit)="Add(p)">
+
+        <label for="">Playlist Name</label>
+        <input name="Title" #title="ngModel" [(ngModel)]="playlists.Title" type="text" class="form-control" required>
+
+        <br><br>
+        <button class="btn btn-success">Playlist</button>
+
+    </form>
+</div>

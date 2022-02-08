@@ -1,0 +1,1686 @@
+﻿/******************************************************
+        Jquery Hover Intent
+*******************************************************/
+/**
+* hoverIntent r6 // 2011.02.26 // jQuery 1.5.1+
+* <http://cherne.net/brian/resources/jquery.hoverIntent.html>
+* 
+* @param  f  onMouseOver function || An object with configuration options
+* @param  g  onMouseOut function  || Nothing (use configuration options object)
+* @author    Brian Cherne brian(at)cherne(dot)net
+*/
+; (function ($) {
+    $.fn.hoverIntent = function (handlerIn, handlerOut, selector) {
+
+        // default configuration values
+        var cfg = {
+            interval: 100,
+            sensitivity: 7,
+            timeout: 0
+        };
+
+        if (typeof handlerIn === "object") {
+            cfg = $.extend(cfg, handlerIn);
+        } else if ($.isFunction(handlerOut)) {
+            cfg = $.extend(cfg, { over: handlerIn, out: handlerOut, selector: selector });
+        } else {
+            cfg = $.extend(cfg, { over: handlerIn, out: handlerIn, selector: handlerOut });
+        }
+
+        // instantiate variables
+        // cX, cY = current X and Y position of mouse, updated by mousemove event
+        // pX, pY = previous X and Y position of mouse, set by mouseover and polling interval
+        var cX, cY, pX, pY;
+
+        // A private function for getting mouse position
+        var track = function (ev) {
+            cX = ev.pageX;
+            cY = ev.pageY;
+        };
+
+        // A private function for comparing current and previous mouse position
+        var compare = function (ev, ob) {
+            ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
+            // compare mouse positions to see if they've crossed the threshold
+            if ((Math.abs(pX - cX) + Math.abs(pY - cY)) < cfg.sensitivity) {
+                $(ob).off("mousemove.hoverIntent", track);
+                // set hoverIntent state to true (so mouseOut can be called)
+                ob.hoverIntent_s = 1;
+                return cfg.over.apply(ob, [ev]);
+            } else {
+                // set previous coordinates for next time
+                pX = cX; pY = cY;
+                // use self-calling timeout, guarantees intervals are spaced out properly (avoids JavaScript timer bugs)
+                ob.hoverIntent_t = setTimeout(function () { compare(ev, ob); }, cfg.interval);
+            }
+        };
+
+        // A private function for delaying the mouseOut function
+        var delay = function (ev, ob) {
+            ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
+            ob.hoverIntent_s = 0;
+            return cfg.out.apply(ob, [ev]);
+        };
+
+        // A private function for handling mouse 'hovering'
+        var handleHover = function (e) {
+            // copy objects to be passed into t (required for event object to be passed in IE)
+            var ev = jQuery.extend({}, e);
+            var ob = this;
+
+            // cancel hoverIntent timer if it exists
+            if (ob.hoverIntent_t) { ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t); }
+
+            // if e.type == "mouseenter"
+            if (e.type == "mouseenter") {
+                // set "previous" X and Y position based on initial entry point
+                pX = ev.pageX; pY = ev.pageY;
+                // update "current" X and Y position based on mousemove
+                $(ob).on("mousemove.hoverIntent", track);
+                // start polling interval (self-calling timeout) to compare mouse coordinates over time
+                if (ob.hoverIntent_s != 1) { ob.hoverIntent_t = setTimeout(function () { compare(ev, ob); }, cfg.interval); }
+
+                // else e.type == "mouseleave"
+            } else {
+                // unbind expensive mousemove event
+                $(ob).off("mousemove.hoverIntent", track);
+                // if hoverIntent state is true, then call the mouseOut function after the specified delay
+                if (ob.hoverIntent_s == 1) { ob.hoverIntent_t = setTimeout(function () { delay(ev, ob); }, cfg.timeout); }
+            }
+        };
+
+        // listen for mouseenter and mouseleave
+        return this.on({ 'mouseenter.hoverIntent': handleHover, 'mouseleave.hoverIntent': handleHover }, cfg.selector);
+    };
+})(jQuery);
+/******************************************************************************************
+                NAVIGATION MENU SCRIPT START 
+*******************************************************************************************/
+/*
+ * jQuery Superfish Menu Plugin - v1.7.4
+ * Copyright (c) 2013 Joel Birch
+ *
+ * Dual licensed under the MIT and GPL licenses:
+ *	http://www.opensource.org/licenses/mit-license.php
+ *	http://www.gnu.org/licenses/gpl.html
+ */
+; (function ($) {
+    "use strict";
+    var methods = (function () {
+        // private properties and methods go here
+        var c = {
+            bcClass: 'sf-breadcrumb',
+            menuClass: 'sf-js-enabled',
+            anchorClass: 'sf-with-ul',
+            menuArrowClass: 'sf-arrows'
+        },
+			ios = (function () {
+			    var ios = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+			    if (ios) {
+			        // iOS clicks only bubble as far as body children
+                    $(window).on('load', function () {
+			            $('body').children().on('click', $.noop);
+			        });
+			    }
+			    return ios;
+			})(),
+			wp7 = (function () {
+			    var style = document.documentElement.style;
+			    return ('behavior' in style && 'fill' in style && /iemobile/i.test(navigator.userAgent));
+			})(),
+			toggleMenuClasses = function ($menu, o) {
+			    var classes = c.menuClass;
+			    if (o.cssArrows) {
+			        classes += ' ' + c.menuArrowClass;
+			    }
+			    $menu.toggleClass(classes);
+			},
+			setPathToCurrent = function ($menu, o) {
+			    return $menu.find('li.' + o.pathClass).slice(0, o.pathLevels)
+					.addClass(o.hoverClass + ' ' + c.bcClass)
+						.filter(function () {
+						    return ($(this).children(o.popUpSelector).hide().show().length);
+						}).removeClass(o.pathClass);
+			},
+			toggleAnchorClass = function ($li) {
+			    $li.children('a').toggleClass(c.anchorClass);
+			},
+			toggleTouchAction = function ($menu) {
+			    var touchAction = $menu.css('ms-touch-action');
+			    touchAction = (touchAction === 'pan-y') ? 'auto' : 'pan-y';
+			    $menu.css('ms-touch-action', touchAction);
+			},
+			applyHandlers = function ($menu, o) {
+			    var targets = 'li:has(' + o.popUpSelector + ')';
+			    if ($.fn.hoverIntent && !o.disableHI) {
+			        $menu.hoverIntent(over, out, targets);
+			    }
+			    else {
+			        $menu
+						.on('mouseenter.superfish', targets, over)
+						.on('mouseleave.superfish', targets, out);
+			    }
+			    var touchevent = 'MSPointerDown.superfish';
+			    if (!ios) {
+			        touchevent += ' touchend.superfish';
+			    }
+			    if (wp7) {
+			        touchevent += ' mousedown.superfish';
+			    }
+			    $menu
+					.on('focusin.superfish', 'li', over)
+					.on('focusout.superfish', 'li', out)
+					.on(touchevent, 'a', o, touchHandler);
+			},
+			touchHandler = function (e) {
+			    var $this = $(this),
+					$ul = $this.siblings(e.data.popUpSelector);
+
+			    if ($ul.length > 0 && $ul.is(':hidden')) {
+			        $this.one('click.superfish', false);
+			        if (e.type === 'MSPointerDown') {
+			            $this.trigger('focus');
+			        } else {
+			            $.proxy(over, $this.parent('li'))();
+			        }
+			    }
+			},
+			over = function () {
+			    var $this = $(this),
+					o = getOptions($this);
+			    clearTimeout(o.sfTimer);
+			    $this.siblings().superfish('hide').end().superfish('show');
+			},
+			out = function () {
+			    var $this = $(this),
+					o = getOptions($this);
+			    if (ios) {
+			        $.proxy(close, $this, o)();
+			    }
+			    else {
+			        clearTimeout(o.sfTimer);
+			        o.sfTimer = setTimeout($.proxy(close, $this, o), o.delay);
+			    }
+			},
+			close = function (o) {
+			    o.retainPath = ($.inArray(this[0], o.$path) > -1);
+			    this.superfish('hide');
+
+			    if (!this.parents('.' + o.hoverClass).length) {
+			        o.onIdle.call(getMenu(this));
+			        if (o.$path.length) {
+			            $.proxy(over, o.$path)();
+			        }
+			    }
+			},
+			getMenu = function ($el) {
+			    return $el.closest('.' + c.menuClass);
+			},
+			getOptions = function ($el) {
+			    return getMenu($el).data('sf-options');
+			};
+
+        return {
+            // public methods
+            hide: function (instant) {
+                if (this.length) {
+                    var $this = this,
+						o = getOptions($this);
+                    if (!o) {
+                        return this;
+                    }
+                    var not = (o.retainPath === true) ? o.$path : '',
+						$ul = $this.find('li.' + o.hoverClass).add(this).not(not).removeClass(o.hoverClass).children(o.popUpSelector),
+						speed = o.speedOut;
+
+                    if (instant) {
+                        $ul.show();
+                        speed = 0;
+                    }
+                    o.retainPath = false;
+                    o.onBeforeHide.call($ul);
+                    $ul.stop(true, true).animate(o.animationOut, speed, function () {
+                        var $this = $(this);
+                        o.onHide.call($this);
+                    });
+                }
+                return this;
+            },
+            show: function () {
+                var o = getOptions(this);
+                if (!o) {
+                    return this;
+                }
+                var $this = this.addClass(o.hoverClass),
+					$ul = $this.children(o.popUpSelector);
+
+                o.onBeforeShow.call($ul);
+                $ul.stop(true, true).animate(o.animation, o.speed, function () {
+                    o.onShow.call($ul);
+                });
+                return this;
+            },
+            destroy: function () {
+                return this.each(function () {
+                    var $this = $(this),
+						o = $this.data('sf-options'),
+						$hasPopUp;
+                    if (!o) {
+                        return false;
+                    }
+                    $hasPopUp = $this.find(o.popUpSelector).parent('li');
+                    clearTimeout(o.sfTimer);
+                    toggleMenuClasses($this, o);
+                    toggleAnchorClass($hasPopUp);
+                    toggleTouchAction($this);
+                    // remove event handlers
+                    $this.off('.superfish').off('.hoverIntent');
+                    // clear animation's inline display style
+                    $hasPopUp.children(o.popUpSelector).attr('style', function (i, style) {
+                        return style.replace(/display[^;]+;?/g, '');
+                    });
+                    // reset 'current' path classes
+                    o.$path.removeClass(o.hoverClass + ' ' + c.bcClass).addClass(o.pathClass);
+                    $this.find('.' + o.hoverClass).removeClass(o.hoverClass);
+                    o.onDestroy.call($this);
+                    $this.removeData('sf-options');
+                });
+            },
+            init: function (op) {
+                return this.each(function () {
+                    var $this = $(this);
+                    if ($this.data('sf-options')) {
+                        return false;
+                    }
+                    var o = $.extend({}, $.fn.superfish.defaults, op),
+						$hasPopUp = $this.find(o.popUpSelector).parent('li');
+                    o.$path = setPathToCurrent($this, o);
+
+                    $this.data('sf-options', o);
+
+                    toggleMenuClasses($this, o);
+                    toggleAnchorClass($hasPopUp);
+                    toggleTouchAction($this);
+                    applyHandlers($this, o);
+
+                    $hasPopUp.not('.' + c.bcClass).superfish('hide', true);
+
+                    o.onInit.call(this);
+                });
+            }
+        };
+    })();
+
+    $.fn.superfish = function (method, args) {
+        if (methods[method]) {
+            return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+        }
+        else if (typeof method === 'object' || !method) {
+            return methods.init.apply(this, arguments);
+        }
+        else {
+            return $.error('Method ' + method + ' does not exist on jQuery.fn.superfish');
+        }
+    };
+
+    $.fn.superfish.defaults = {
+        popUpSelector: 'ul,.sf-mega', // within menu context
+        hoverClass: 'sfHover',
+        pathClass: 'overrideThisToUse',
+        pathLevels: 1,
+        delay: 800,
+        animation: { opacity: 'show' },
+        animationOut: { opacity: 'hide' },
+        speed: 'normal',
+        speedOut: 'fast',
+        cssArrows: true,
+        disableHI: false,
+        onInit: $.noop,
+        onBeforeShow: $.noop,
+        onShow: $.noop,
+        onBeforeHide: $.noop,
+        onHide: $.noop,
+        onIdle: $.noop,
+        onDestroy: $.noop
+    };
+
+    // soon to be deprecated
+    $.fn.extend({
+        hideSuperfishUl: methods.hide,
+        showSuperfishUl: methods.show
+    });
+
+})(jQuery);
+/****************************************************
+                Waypoints Plugin
+****************************************************/
+/*!
+Waypoints - 4.0.1
+Copyright © 2011-2016 Caleb Troughton
+Licensed under the MIT license.
+https://github.com/imakewebthings/waypoints/blob/master/licenses.txt
+*/
+(function () {
+    'use strict'
+
+    var keyCounter = 0
+    var allWaypoints = {}
+
+    /* http://imakewebthings.com/waypoints/api/waypoint */
+    function Waypoint(options) {
+        if (!options) {
+            throw new Error('No options passed to Waypoint constructor')
+        }
+        if (!options.element) {
+            throw new Error('No element option passed to Waypoint constructor')
+        }
+        if (!options.handler) {
+            throw new Error('No handler option passed to Waypoint constructor')
+        }
+
+        this.key = 'waypoint-' + keyCounter
+        this.options = Waypoint.Adapter.extend({}, Waypoint.defaults, options)
+        this.element = this.options.element
+        this.adapter = new Waypoint.Adapter(this.element)
+        this.callback = options.handler
+        this.axis = this.options.horizontal ? 'horizontal' : 'vertical'
+        this.enabled = this.options.enabled
+        this.triggerPoint = null
+        this.group = Waypoint.Group.findOrCreate({
+            name: this.options.group,
+            axis: this.axis
+        })
+        this.context = Waypoint.Context.findOrCreateByElement(this.options.context)
+
+        if (Waypoint.offsetAliases[this.options.offset]) {
+            this.options.offset = Waypoint.offsetAliases[this.options.offset]
+        }
+        this.group.add(this)
+        this.context.add(this)
+        allWaypoints[this.key] = this
+        keyCounter += 1
+    }
+
+    /* Private */
+    Waypoint.prototype.queueTrigger = function (direction) {
+        this.group.queueTrigger(this, direction)
+    }
+
+    /* Private */
+    Waypoint.prototype.trigger = function (args) {
+        if (!this.enabled) {
+            return
+        }
+        if (this.callback) {
+            this.callback.apply(this, args)
+        }
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/destroy */
+    Waypoint.prototype.destroy = function () {
+        this.context.remove(this)
+        this.group.remove(this)
+        delete allWaypoints[this.key]
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/disable */
+    Waypoint.prototype.disable = function () {
+        this.enabled = false
+        return this
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/enable */
+    Waypoint.prototype.enable = function () {
+        this.context.refresh()
+        this.enabled = true
+        return this
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/next */
+    Waypoint.prototype.next = function () {
+        return this.group.next(this)
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/previous */
+    Waypoint.prototype.previous = function () {
+        return this.group.previous(this)
+    }
+
+    /* Private */
+    Waypoint.invokeAll = function (method) {
+        var allWaypointsArray = []
+        for (var waypointKey in allWaypoints) {
+            allWaypointsArray.push(allWaypoints[waypointKey])
+        }
+        for (var i = 0, end = allWaypointsArray.length; i < end; i++) {
+            allWaypointsArray[i][method]()
+        }
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/destroy-all */
+    Waypoint.destroyAll = function () {
+        Waypoint.invokeAll('destroy')
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/disable-all */
+    Waypoint.disableAll = function () {
+        Waypoint.invokeAll('disable')
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/enable-all */
+    Waypoint.enableAll = function () {
+        Waypoint.Context.refreshAll()
+        for (var waypointKey in allWaypoints) {
+            allWaypoints[waypointKey].enabled = true
+        }
+        return this
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/refresh-all */
+    Waypoint.refreshAll = function () {
+        Waypoint.Context.refreshAll()
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/viewport-height */
+    Waypoint.viewportHeight = function () {
+        return window.innerHeight || document.documentElement.clientHeight
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/viewport-width */
+    Waypoint.viewportWidth = function () {
+        return document.documentElement.clientWidth
+    }
+
+    Waypoint.adapters = []
+
+    Waypoint.defaults = {
+        context: window,
+        continuous: true,
+        enabled: true,
+        group: 'default',
+        horizontal: false,
+        offset: 0
+    }
+
+    Waypoint.offsetAliases = {
+        'bottom-in-view': function () {
+            return this.context.innerHeight() - this.adapter.outerHeight()
+        },
+        'right-in-view': function () {
+            return this.context.innerWidth() - this.adapter.outerWidth()
+        }
+    }
+
+    window.Waypoint = Waypoint
+}())
+; (function () {
+    'use strict'
+
+    function requestAnimationFrameShim(callback) {
+        window.setTimeout(callback, 1000 / 60)
+    }
+
+    var keyCounter = 0
+    var contexts = {}
+    var Waypoint = window.Waypoint
+    var oldWindowLoad = window.onload
+
+    /* http://imakewebthings.com/waypoints/api/context */
+    function Context(element) {
+        this.element = element
+        this.Adapter = Waypoint.Adapter
+        this.adapter = new this.Adapter(element)
+        this.key = 'waypoint-context-' + keyCounter
+        this.didScroll = false
+        this.didResize = false
+        this.oldScroll = {
+            x: this.adapter.scrollLeft(),
+            y: this.adapter.scrollTop()
+        }
+        this.waypoints = {
+            vertical: {},
+            horizontal: {}
+        }
+
+        element.waypointContextKey = this.key
+        contexts[element.waypointContextKey] = this
+        keyCounter += 1
+        if (!Waypoint.windowContext) {
+            Waypoint.windowContext = true
+            Waypoint.windowContext = new Context(window)
+        }
+
+        this.createThrottledScrollHandler()
+        this.createThrottledResizeHandler()
+    }
+
+    /* Private */
+    Context.prototype.add = function (waypoint) {
+        var axis = waypoint.options.horizontal ? 'horizontal' : 'vertical'
+        this.waypoints[axis][waypoint.key] = waypoint
+        this.refresh()
+    }
+
+    /* Private */
+    Context.prototype.checkEmpty = function () {
+        var horizontalEmpty = this.Adapter.isEmptyObject(this.waypoints.horizontal)
+        var verticalEmpty = this.Adapter.isEmptyObject(this.waypoints.vertical)
+        var isWindow = this.element == this.element.window
+        if (horizontalEmpty && verticalEmpty && !isWindow) {
+            this.adapter.off('.waypoints')
+            delete contexts[this.key]
+        }
+    }
+
+    /* Private */
+    Context.prototype.createThrottledResizeHandler = function () {
+        var self = this
+
+        function resizeHandler() {
+            self.handleResize()
+            self.didResize = false
+        }
+
+        this.adapter.on('resize.waypoints', function () {
+            if (!self.didResize) {
+                self.didResize = true
+                Waypoint.requestAnimationFrame(resizeHandler)
+            }
+        })
+    }
+
+    /* Private */
+    Context.prototype.createThrottledScrollHandler = function () {
+        var self = this
+        function scrollHandler() {
+            self.handleScroll()
+            self.didScroll = false
+        }
+
+        this.adapter.on('scroll.waypoints', function () {
+            if (!self.didScroll || Waypoint.isTouch) {
+                self.didScroll = true
+                Waypoint.requestAnimationFrame(scrollHandler)
+            }
+        })
+    }
+
+    /* Private */
+    Context.prototype.handleResize = function () {
+        Waypoint.Context.refreshAll()
+    }
+
+    /* Private */
+    Context.prototype.handleScroll = function () {
+        var triggeredGroups = {}
+        var axes = {
+            horizontal: {
+                newScroll: this.adapter.scrollLeft(),
+                oldScroll: this.oldScroll.x,
+                forward: 'right',
+                backward: 'left'
+            },
+            vertical: {
+                newScroll: this.adapter.scrollTop(),
+                oldScroll: this.oldScroll.y,
+                forward: 'down',
+                backward: 'up'
+            }
+        }
+
+        for (var axisKey in axes) {
+            var axis = axes[axisKey]
+            var isForward = axis.newScroll > axis.oldScroll
+            var direction = isForward ? axis.forward : axis.backward
+
+            for (var waypointKey in this.waypoints[axisKey]) {
+                var waypoint = this.waypoints[axisKey][waypointKey]
+                if (waypoint.triggerPoint === null) {
+                    continue
+                }
+                var wasBeforeTriggerPoint = axis.oldScroll < waypoint.triggerPoint
+                var nowAfterTriggerPoint = axis.newScroll >= waypoint.triggerPoint
+                var crossedForward = wasBeforeTriggerPoint && nowAfterTriggerPoint
+                var crossedBackward = !wasBeforeTriggerPoint && !nowAfterTriggerPoint
+                if (crossedForward || crossedBackward) {
+                    waypoint.queueTrigger(direction)
+                    triggeredGroups[waypoint.group.id] = waypoint.group
+                }
+            }
+        }
+
+        for (var groupKey in triggeredGroups) {
+            triggeredGroups[groupKey].flushTriggers()
+        }
+
+        this.oldScroll = {
+            x: axes.horizontal.newScroll,
+            y: axes.vertical.newScroll
+        }
+    }
+
+    /* Private */
+    Context.prototype.innerHeight = function () {
+        /*eslint-disable eqeqeq */
+        if (this.element == this.element.window) {
+            return Waypoint.viewportHeight()
+        }
+        /*eslint-enable eqeqeq */
+        return this.adapter.innerHeight()
+    }
+
+    /* Private */
+    Context.prototype.remove = function (waypoint) {
+        delete this.waypoints[waypoint.axis][waypoint.key]
+        this.checkEmpty()
+    }
+
+    /* Private */
+    Context.prototype.innerWidth = function () {
+        /*eslint-disable eqeqeq */
+        if (this.element == this.element.window) {
+            return Waypoint.viewportWidth()
+        }
+        /*eslint-enable eqeqeq */
+        return this.adapter.innerWidth()
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/context-destroy */
+    Context.prototype.destroy = function () {
+        var allWaypoints = []
+        for (var axis in this.waypoints) {
+            for (var waypointKey in this.waypoints[axis]) {
+                allWaypoints.push(this.waypoints[axis][waypointKey])
+            }
+        }
+        for (var i = 0, end = allWaypoints.length; i < end; i++) {
+            allWaypoints[i].destroy()
+        }
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/context-refresh */
+    Context.prototype.refresh = function () {
+        /*eslint-disable eqeqeq */
+        var isWindow = this.element == this.element.window
+        /*eslint-enable eqeqeq */
+        var contextOffset = isWindow ? undefined : this.adapter.offset()
+        var triggeredGroups = {}
+        var axes
+
+        this.handleScroll()
+        axes = {
+            horizontal: {
+                contextOffset: isWindow ? 0 : contextOffset.left,
+                contextScroll: isWindow ? 0 : this.oldScroll.x,
+                contextDimension: this.innerWidth(),
+                oldScroll: this.oldScroll.x,
+                forward: 'right',
+                backward: 'left',
+                offsetProp: 'left'
+            },
+            vertical: {
+                contextOffset: isWindow ? 0 : contextOffset.top,
+                contextScroll: isWindow ? 0 : this.oldScroll.y,
+                contextDimension: this.innerHeight(),
+                oldScroll: this.oldScroll.y,
+                forward: 'down',
+                backward: 'up',
+                offsetProp: 'top'
+            }
+        }
+
+        for (var axisKey in axes) {
+            var axis = axes[axisKey]
+            for (var waypointKey in this.waypoints[axisKey]) {
+                var waypoint = this.waypoints[axisKey][waypointKey]
+                var adjustment = waypoint.options.offset
+                var oldTriggerPoint = waypoint.triggerPoint
+                var elementOffset = 0
+                var freshWaypoint = oldTriggerPoint == null
+                var contextModifier, wasBeforeScroll, nowAfterScroll
+                var triggeredBackward, triggeredForward
+
+                if (waypoint.element !== waypoint.element.window) {
+                    elementOffset = waypoint.adapter.offset()[axis.offsetProp]
+                }
+
+                if (typeof adjustment === 'function') {
+                    adjustment = adjustment.apply(waypoint)
+                }
+                else if (typeof adjustment === 'string') {
+                    adjustment = parseFloat(adjustment)
+                    if (waypoint.options.offset.indexOf('%') > -1) {
+                        adjustment = Math.ceil(axis.contextDimension * adjustment / 100)
+                    }
+                }
+
+                contextModifier = axis.contextScroll - axis.contextOffset
+                waypoint.triggerPoint = Math.floor(elementOffset + contextModifier - adjustment)
+                wasBeforeScroll = oldTriggerPoint < axis.oldScroll
+                nowAfterScroll = waypoint.triggerPoint >= axis.oldScroll
+                triggeredBackward = wasBeforeScroll && nowAfterScroll
+                triggeredForward = !wasBeforeScroll && !nowAfterScroll
+
+                if (!freshWaypoint && triggeredBackward) {
+                    waypoint.queueTrigger(axis.backward)
+                    triggeredGroups[waypoint.group.id] = waypoint.group
+                }
+                else if (!freshWaypoint && triggeredForward) {
+                    waypoint.queueTrigger(axis.forward)
+                    triggeredGroups[waypoint.group.id] = waypoint.group
+                }
+                else if (freshWaypoint && axis.oldScroll >= waypoint.triggerPoint) {
+                    waypoint.queueTrigger(axis.forward)
+                    triggeredGroups[waypoint.group.id] = waypoint.group
+                }
+            }
+        }
+
+        Waypoint.requestAnimationFrame(function () {
+            for (var groupKey in triggeredGroups) {
+                triggeredGroups[groupKey].flushTriggers()
+            }
+        })
+
+        return this
+    }
+
+    /* Private */
+    Context.findOrCreateByElement = function (element) {
+        return Context.findByElement(element) || new Context(element)
+    }
+
+    /* Private */
+    Context.refreshAll = function () {
+        for (var contextId in contexts) {
+            contexts[contextId].refresh()
+        }
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/context-find-by-element */
+    Context.findByElement = function (element) {
+        return contexts[element.waypointContextKey]
+    }
+
+    window.onload = function () {
+        if (oldWindowLoad) {
+            oldWindowLoad()
+        }
+        Context.refreshAll()
+    }
+
+
+    Waypoint.requestAnimationFrame = function (callback) {
+        var requestFn = window.requestAnimationFrame ||
+          window.mozRequestAnimationFrame ||
+          window.webkitRequestAnimationFrame ||
+          requestAnimationFrameShim
+        requestFn.call(window, callback)
+    }
+    Waypoint.Context = Context
+}())
+; (function () {
+    'use strict'
+
+    function byTriggerPoint(a, b) {
+        return a.triggerPoint - b.triggerPoint
+    }
+
+    function byReverseTriggerPoint(a, b) {
+        return b.triggerPoint - a.triggerPoint
+    }
+
+    var groups = {
+        vertical: {},
+        horizontal: {}
+    }
+    var Waypoint = window.Waypoint
+
+    /* http://imakewebthings.com/waypoints/api/group */
+    function Group(options) {
+        this.name = options.name
+        this.axis = options.axis
+        this.id = this.name + '-' + this.axis
+        this.waypoints = []
+        this.clearTriggerQueues()
+        groups[this.axis][this.name] = this
+    }
+
+    /* Private */
+    Group.prototype.add = function (waypoint) {
+        this.waypoints.push(waypoint)
+    }
+
+    /* Private */
+    Group.prototype.clearTriggerQueues = function () {
+        this.triggerQueues = {
+            up: [],
+            down: [],
+            left: [],
+            right: []
+        }
+    }
+
+    /* Private */
+    Group.prototype.flushTriggers = function () {
+        for (var direction in this.triggerQueues) {
+            var waypoints = this.triggerQueues[direction]
+            var reverse = direction === 'up' || direction === 'left'
+            waypoints.sort(reverse ? byReverseTriggerPoint : byTriggerPoint)
+            for (var i = 0, end = waypoints.length; i < end; i += 1) {
+                var waypoint = waypoints[i]
+                if (waypoint.options.continuous || i === waypoints.length - 1) {
+                    waypoint.trigger([direction])
+                }
+            }
+        }
+        this.clearTriggerQueues()
+    }
+
+    /* Private */
+    Group.prototype.next = function (waypoint) {
+        this.waypoints.sort(byTriggerPoint)
+        var index = Waypoint.Adapter.inArray(waypoint, this.waypoints)
+        var isLast = index === this.waypoints.length - 1
+        return isLast ? null : this.waypoints[index + 1]
+    }
+
+    /* Private */
+    Group.prototype.previous = function (waypoint) {
+        this.waypoints.sort(byTriggerPoint)
+        var index = Waypoint.Adapter.inArray(waypoint, this.waypoints)
+        return index ? this.waypoints[index - 1] : null
+    }
+
+    /* Private */
+    Group.prototype.queueTrigger = function (waypoint, direction) {
+        this.triggerQueues[direction].push(waypoint)
+    }
+
+    /* Private */
+    Group.prototype.remove = function (waypoint) {
+        var index = Waypoint.Adapter.inArray(waypoint, this.waypoints)
+        if (index > -1) {
+            this.waypoints.splice(index, 1)
+        }
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/first */
+    Group.prototype.first = function () {
+        return this.waypoints[0]
+    }
+
+    /* Public */
+    /* http://imakewebthings.com/waypoints/api/last */
+    Group.prototype.last = function () {
+        return this.waypoints[this.waypoints.length - 1]
+    }
+
+    /* Private */
+    Group.findOrCreate = function (options) {
+        return groups[options.axis][options.name] || new Group(options)
+    }
+
+    Waypoint.Group = Group
+}())
+; (function () {
+    'use strict'
+
+    var $ = window.jQuery
+    var Waypoint = window.Waypoint
+
+    function JQueryAdapter(element) {
+        this.$element = $(element)
+    }
+
+    $.each([
+      'innerHeight',
+      'innerWidth',
+      'off',
+      'offset',
+      'on',
+      'outerHeight',
+      'outerWidth',
+      'scrollLeft',
+      'scrollTop'
+    ], function (i, method) {
+        JQueryAdapter.prototype[method] = function () {
+            var args = Array.prototype.slice.call(arguments)
+            return this.$element[method].apply(this.$element, args)
+        }
+    })
+
+    $.each([
+      'extend',
+      'inArray',
+      'isEmptyObject'
+    ], function (i, method) {
+        JQueryAdapter[method] = $[method]
+    })
+
+    Waypoint.adapters.push({
+        name: 'jquery',
+        Adapter: JQueryAdapter
+    })
+    Waypoint.Adapter = JQueryAdapter
+}())
+; (function () {
+    'use strict'
+
+    var Waypoint = window.Waypoint
+
+    function createExtension(framework) {
+        return function () {
+            var waypoints = []
+            var overrides = arguments[0]
+
+            if (framework.isFunction(arguments[0])) {
+                overrides = framework.extend({}, arguments[1])
+                overrides.handler = arguments[0]
+            }
+
+            this.each(function () {
+                var options = framework.extend({}, overrides, {
+                    element: this
+                })
+                if (typeof options.context === 'string') {
+                    options.context = framework(this).closest(options.context)[0]
+                }
+                waypoints.push(new Waypoint(options))
+            })
+
+            return waypoints
+        }
+    }
+
+    if (window.jQuery) {
+        window.jQuery.fn.waypoint = createExtension(window.jQuery)
+    }
+    if (window.Zepto) {
+        window.Zepto.fn.waypoint = createExtension(window.Zepto)
+    }
+}());
+
+/*!
+Waypoints Sticky Element Shortcut - 4.0.1
+Copyright © 2011-2016 Caleb Troughton
+Licensed under the MIT license.
+https://github.com/imakewebthings/waypoints/blob/master/licenses.txt
+*/
+(function () {
+    'use strict'
+
+    var $ = window.jQuery
+    var Waypoint = window.Waypoint
+
+    /* http://imakewebthings.com/waypoints/shortcuts/sticky-elements */
+    function Sticky(options) {
+        this.options = $.extend({}, Waypoint.defaults, Sticky.defaults, options)
+        this.element = this.options.element
+        this.$element = $(this.element)
+        this.createWrapper()
+        this.createWaypoint()
+    }
+
+    /* Private */
+    Sticky.prototype.createWaypoint = function () {
+        var originalHandler = this.options.handler
+
+        this.waypoint = new Waypoint($.extend({}, this.options, {
+            element: this.wrapper,
+            handler: $.proxy(function (direction) {
+                var shouldBeStuck = this.options.direction.indexOf(direction) > -1
+                var wrapperHeight = shouldBeStuck ? this.$element.outerHeight(true) : ''
+
+                this.$wrapper.height(wrapperHeight)
+                this.$element.toggleClass(this.options.stuckClass, shouldBeStuck)
+
+                if (originalHandler) {
+                    originalHandler.call(this, direction)
+                }
+            }, this)
+        }))
+    }
+
+    /* Private */
+    Sticky.prototype.createWrapper = function () {
+        if (this.options.wrapper) {
+            this.$element.wrap(this.options.wrapper)
+        }
+        this.$wrapper = this.$element.parent()
+        this.wrapper = this.$wrapper[0]
+    }
+
+    /* Public */
+    Sticky.prototype.destroy = function () {
+        if (this.$element.parent()[0] === this.wrapper) {
+            this.waypoint.destroy()
+            this.$element.removeClass(this.options.stuckClass)
+            if (this.options.wrapper) {
+                this.$element.unwrap()
+            }
+        }
+    }
+
+    Sticky.defaults = {
+        wrapper: '<div class="sticky-wrapper" />',
+        stuckClass: 'stuck',
+        direction: 'down right'
+    }
+
+    Waypoint.Sticky = Sticky
+}());
+
+
+/****************************************************
+                Search Widget
+****************************************************/
+var searchUtility = (function ($) {
+    // 'use strict';
+
+    var isInit = true,
+        $resultsContainer,
+        searchEvents = {}, config = {}, cxFacets = [];
+
+    /****
+      Utility Functions
+    ****/
+    // Retrieve URL Query String Variables
+    function getParameterByName(name, url) {
+        if (!url) {
+            url = window.location.href;
+        }
+        name = name.replace(/[\[\]]/g, "\\$&");
+        var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+            results = regex.exec(url);
+        if (!results) return null;
+        if (!results[2]) return '';
+        return decodeURIComponent(results[2].replace(/\+/g, " "));
+    }
+
+    /****
+      Private Functions
+    ****/
+    // Function _unloadResults
+    // Removes results from other non-active facets and sets their facet-loaded status to false
+    var _unloadResults = function () {
+        $resultsContainer.find('.search__facet:not(.active)').attr('data-cse-facet-loaded', false);
+        $resultsContainer.find('.search__facet:not(.active)').data('cse-facet-loaded', false);
+        $resultsContainer.find('.search__results-facet:not(.active)').html('<ul class="search__results" />');
+    };
+
+    // Function _getConfiguration
+    // Initializes configuration by returning JSON object of config options
+    var _getConfiguration = function () {
+        return {
+            lang: $resultsContainer.data('cse-lang') || "en",
+            key: "AIzaSyCsC91yBaZm4pA-o0v0Eyujyrt1AGFzcIg",
+            fields: 'queries(previousPage/startIndex,previousPage/searchTerms,nextPage/startIndex,nextPage/searchTerms,request/startIndex,request/searchTerms),items(htmlTitle,htmlFormattedUrl,link,htmlSnippet),kind,searchInformation(formattedSearchTime,formattedTotalResults,searchTime,totalResults)',
+            fieldsFacet: 'context(facets)',
+            locale: {
+                en: {
+                    cx: $resultsContainer.data('cse-cx') || "008615130266203034153%3Aoleanbjsfso",
+                    facets: {
+                        all: "All"
+                    },
+                    searchMetaData: "About <b class=\"search__totalresults\">{{total}}</b> results (<b class=\"search__totaltime\">{{time}}</b> seconds)",
+                    sortByLabel: "Sort by",
+                    noQueryMessage: "No search query has been provided. Please use the input above to begin your search.",
+                    pagination: {
+                        next: "Next Page",
+                        prev: "Previous Page"
+                    },
+                    errors: {
+                        ajaxRetrieval: "Sorry, we've encountered an error.",
+                        noResults: {
+                            regExp: "^(blog|ideas|forums)$",
+                            all: "<div class=\"ui-alert font-size--sm\">Sorry, no search results were found. Please try searching again.</div>",
+                            forums: "<span class=\"search__results-title\"><a href=\"/community/forums\" target=\"_blank\">Infragistics' Forums</a></span><span class=\"search__results-link\">https://www.infragistics.com/community/forums</span><div class=\"ui-alert font-size--sm\">We’re sorry; no search results were found. Please visit <a href=\"/community/forums\" target=\"_blank\">www.infragistics.com/community/forums</a> to look through product help topics or to ask your own questions with our experts.</div>",
+                            ideas: "<span class=\"search__results-title\"><a href=\"/community/ideas\" target=\"_blank\">Infragistics' Product Ideas</a></span><span class=\"search__results-link\">https://www.infragistics.com/community/ideas</span><div class=\"ui-alert font-size--sm\">We’re sorry; no search results were found. Please visit <a href=\"/community/ideas\" target=\"_blank\">www.infragistics.com/community/ideas</a> to search existing product ideas or to create a new one.</div>",
+                            blog: "<span class=\"search__results-title\"><a href=\"/community/blogs\" target=\"_blank\">Infragistics' Blogs</a></span><span class=\"search__results-link\">https://www.infragistics.com/community/blogs</span><div class=\"ui-alert font-size--sm\">We’re sorry; no search results were found. Please visit <a href=\"/community/blogs\" target=\"_blank\">www.infragistics.com/community/blogs</a> to look through all of our articles.</div>"
+                        }
+                    }
+                },
+                jp: {
+                    cx: $resultsContainer.data('cse-cx') || "008615130266203034153:ybezveax0n4",
+                    facets: {
+                        all: "すべて"
+                    },
+                    searchMetaData: "約 <b class=\"search__totalresults\">{{total}}</b> 件 (<b class=\"search__totaltime\">{{time}}</b> 秒)",
+                    sortByLabel: "表示順",
+                    noQueryMessage: "検索クエリは提供されていません。上記の入力を使用して検索を開始してください",
+                    pagination: {
+                        next: "次のページ",
+                        prev: "前のページ"
+                    },
+                    errors: {
+                        ajaxRetrieval: "申し訳ありませんが、エラーが発生しました。",
+                        noResults: {
+                            regExp: "^(ブログ)$",
+                            all: "<div class=\"ui-alert font-size--sm\">申し訳ありませんが、検索結果は見つかりませんでした。もう一度検索してみてください</div>",
+                            ブログ: "<span class=\"search__results-title\"><a href=\"http://blogs.jp.infragistics.com/blogs/\" target=\"_blank\">Infragisticsのブログ</a></span><span class=\"search__results-link\">http://blogs.jp.infragistics.com/blogs/</span><div class=\"ui-alert font-size--sm\">申し訳ございません;検索結果は見つかりませんでした。すべての記事を見るには<a href=\"http://blogs.jp.infragistics.com/blogs/\"> http://blogs.jp.infragistics.com/blogs/ </a>をご覧ください。</div>" // Blogs
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    // Function _updateClientSessionHistoryParams
+    // Updates client's Url with Query string provided by input
+    var _updateClientSessionHistoryParams = function (param, val) {
+        if (window.history && window.history.replaceState) {
+            var regex = '([?|&]' + param + '=)[^\&]+',
+                urlSearch = window.location.search,
+                queryParams = urlSearch;
+
+            // If Query Doesn't Exist in Url
+            if (param === "q" && getParameterByName("q") === null) {
+                queryParams = urlSearch + ((urlSearch === "") ? "?" : "&") + "q=" + val;
+            }
+            else {
+                // Replace Query String
+                strReplace = urlSearch.match(new RegExp(regex, 'g'));
+
+                if (strReplace) {
+                    strReplace = strReplace[0].replace(/[\?|\&]/g, "");
+                    queryParams = urlSearch.replace(strReplace, param + "=" + val);
+                }
+            }
+
+            // Update Client History
+            window.history.replaceState({}, null, window.location.protocol + "//" + window.location.hostname + window.location.pathname + queryParams);
+        }
+    }
+
+    // Event Binding for Sort Order
+    var _bindOrderBy = function () {
+        var _hideMenu = function () {
+            $('.search__orderby-menu').hide(250, function () {
+                $('.search__orderby-menu li').attr('tabindex', "-1");
+            });
+        };
+        var _showMenu = function (el) {
+            $(el).attr('aria-expanded', true);
+            $('.search__orderby-menu').show(250, function () {
+                $('.search__orderby-menu li').attr('tabindex', 0);
+            });
+        };
+
+        // Event Bindings
+        $('body').on('click', function (e) {
+            var $clicked = $(e.target);
+            if (!$clicked.parents().hasClass("search__orderby")) {
+                _hideMenu();
+            }
+        });
+        $('.search__orderby .search__orderby-button').on('click', function (e) {
+            _showMenu(this);
+        });
+        $('.search__orderby .search__orderby-menu li').on('click', function (e) {
+            var val = $(this).data('val'),
+                label = $(this).text();
+
+            if (val !== $('.search__orderby .search__orderby-button').text().toLowerCase()) {
+                $('.search__orderby .search__orderby-menu li').removeClass('active');
+                $(this).addClass('active');
+                $(this).parents('.search__orderby').find('.search__orderby-button').text(label);
+
+                var q = $('.search__input').val(),
+                    facetLabel = $(this).parents('.search__results-container').find('.search__facet.active').data('cse-facet-label');
+
+                // Clear Results from other tabs
+                _unloadResults();
+
+                // Populate Search Results
+                var query = _generateQuery({
+                    q: _generateQueryTerm(q, facetLabel),
+                    start: 1
+                });
+                var results = searchUtility.search(query);
+                $('.search__results-facet').animate({ 'opacity': '0.45' }, 150);
+                _renderSearchResults(results, facetLabel);
+            }
+
+            _hideMenu();
+        });
+    };
+
+    // Event Binding for Search Input
+    var _bindSearch = function () {
+        var resultsUrl;
+
+        var _triggerGlobalSearch = function (e, $input) {
+            var q = $input.val();
+
+            if (q) location.href = resultsUrl + "?q=" + q;
+        };
+        var _triggerInlineSearch = function (e, $input) {
+            var q = $input.val(),
+                facetLabel = $resultsContainer.find('.search__results-facet.active').data('facet') || $resultsContainer.data("cse-facet-default") || getParameterByName("facet") || "all";
+
+            if (q) {
+                $('.search__input[name="q"]').prop('value', q);
+
+                // Clear Results from other tabs
+                _unloadResults();
+
+                // Query, Search and Render Results
+                var query = _generateQuery({
+                    q: _generateQueryTerm(q, facetLabel),
+                    start: 1
+                });
+                var results = searchUtility.search(query);
+                $('.search__results-facet').animate({ 'opacity': '0.45' }, 150);
+                _renderSearchResults(results, facetLabel);
+            }
+        };
+
+        $('.search button[type="submit"]').on('click', function (e) {
+            e.preventDefault();
+            resultsUrl = $(this).parents('.search').data('cse-resultsurl') || '/search';
+            if ($resultsContainer.length && resultsUrl === "inline") {
+                _triggerInlineSearch(e, $(this).siblings('.search__input'));
+            } else {
+                _triggerGlobalSearch(e, $(this).siblings('.search__input'));
+            }
+        });
+        $('.search .search__input').on('keyup', function (e) {
+            e.preventDefault();
+            if (e.keyCode == 13) {
+                resultsUrl = $(this).parents('.search').data('cse-resultsurl') || '/search';
+                if ($resultsContainer.length && resultsUrl === "inline") {
+                    _triggerInlineSearch(e, $(this));
+                } else {
+                    _triggerGlobalSearch(e, $(this));
+                }
+            }
+        });
+    };
+
+    // Event Binding for Pagination
+    var _bindPagination = function () {
+        $('.search__results-facet.active .cse-pagination li a').on('click', function (e) {
+            e.preventDefault();
+
+            var start = $(this).data('cse-startindex'),
+                queryTerm = $('.search__input').val(),
+                facetLabel = $(this).parents('.search__results-facet').data('facet');
+
+            // Query, Search and Render Results
+            var query = _generateQuery({
+                q: _generateQueryTerm(queryTerm, facetLabel),
+                start: start
+            });
+            var results = searchUtility.search(query);
+            $('.search__results-facet').animate({ 'opacity': '0.45' }, 150);
+            _renderSearchResults(results, facetLabel);
+
+        });
+    };
+
+    // Event Binding for Facets
+    var _bindFacets = function () {
+        $('.search__facets button.search__facet').on('click', function (e) {
+            e.preventDefault();
+
+            var q = $('.search__input').val(),
+                facetLabel = $(this).attr('data-cse-facet-label'),
+                paginationStart = $('.search__results-facet[data-facet="' + facetLabel + '"] .cse-pagination .active a').data('cse-startindex') || 1,
+                isLoaded = $(this).data('cse-facet-loaded'),
+                totalResults = $resultsContainer.find('.search__results-facet[data-facet="' + facetLabel + '"]').data("totalresults") || 0,
+                formattedSearchTime = $resultsContainer.find('.search__results-facet[data-facet="' + facetLabel + '"]').data("searchtime") || 0;
+
+            $('.search__facets .search__facet, .search__results-facet').removeClass('active');
+            if (!isLoaded) {
+                // Search Options
+                $(this).attr('data-cse-facet-loaded', true).data('cse-facet-loaded', true);
+                // Populate Search Results
+                var query = _generateQuery({
+                    q: _generateQueryTerm(q, facetLabel),
+                    // start: 1
+                    start: 1
+                });
+                var results = searchUtility.search(query);
+                $('.search__results-facet').animate({ 'opacity': '0.45' }, 150);
+                _renderSearchResults(results, facetLabel);
+            } else {
+                // Since Facet was loaded, toggle display of panels
+                $('.search__results-facet').animate({ 'opacity': '0.45' }, 150, function () {
+                    _renderSearchMeta(totalResults, formattedSearchTime);
+                    $('.search__results-facet').hide();
+                    $('.search__results-facet[data-facet="' + facetLabel + '"]').show().animate({ 'opacity': '1' }, 150);
+                    _updateClientSessionHistoryParams("facet", facetLabel);
+                    _updateClientSessionHistoryParams("start", paginationStart);
+                });
+            }
+
+            $(this).addClass('active');
+            $('.search__results-facet[data-facet="' + facetLabel + '"]').addClass('active');
+        });
+    };
+
+
+    // Function _generateQueryTerm
+    // Determine whether to append faceted search to query terms
+    var _generateQueryTerm = function (q, f) {
+        _updateClientSessionHistoryParams("q", q);
+        _updateClientSessionHistoryParams("facet", f);
+        return q + ((f !== "all") ? ":more:" + f : "");
+    };
+    // Function _generateQuery
+    // Generate Query Url with Options to pass to Google API
+    var _generateQuery = function (options) {
+        var baseUrl = "https://www.googleapis.com/customsearch/v1?",
+            searchEngine = "cx=" + config.locale[config.lang].cx,
+            apiKey = "key=" + config.key;
+
+        //Generate URL
+        var searchParams = [apiKey, searchEngine];
+        var url = baseUrl + searchParams.join("&");
+
+        // Set Extra options
+        var sort = ($(".search__orderby .search__orderby-button").text().toLowerCase() !== "relevance") ? $(".search__orderby .search__orderby-button").text().toLowerCase() : undefined,
+            queryAdditon = $resultsContainer.data('cse-webqueryaddition') || getParameterByName("hq") || undefined;
+
+        // Update Client History
+        _updateClientSessionHistoryParams("start", options.start);
+        _updateClientSessionHistoryParams("hq", queryAdditon);
+
+        options = $.extend(options, {
+            fields: config.fields,
+            sort: sort,
+            hq: queryAdditon,
+            hl: config.lang
+        });
+
+        // Return Query
+        return {
+            url: url,
+            method: 'GET',
+            dataType: 'jsonp',
+            data: options
+        };
+    };
+
+    // Generate Facets
+    // Build Facets Navigation
+    var _renderFacets = function (facets, current) {
+        var tabs = '', f, panels = '';
+
+        $resultsContainer.prepend('<nav class="search__facets"><button class="search__facet ' + ((current == "all") ? "active" : "") + '" data-cse-facet-label="all" data-cse-facet-filter="all" data-cse-facet-loaded="' + ((current == "all") ? "true" : "false") + '">' + config.locale[config.lang].facets.all + '</button></nav>');
+        panels += '<div class="search__results-facet ' + ((current == "all") ? "active" : "") + '" data-facet="all" style="display: none;"><ul class="search__results" /></div>';
+        for (f = 0; f < facets.length; f++) {
+            tabs += '<button class="search__facet ' + ((current == facets[f][0].label) ? "active" : "") + '" data-cse-facet-label="' + facets[f][0].label + '" data-cse-facet-filter="' + facets[f][0].label_with_op + '" data-cse-facet-loaded="' + ((current == facets[f][0].label) ? "true" : "false") + '">' + facets[f][0].anchor + '</button>';
+            panels += '<div class="search__results-facet ' + ((current == facets[f][0].label) ? "active" : "") + '" data-facet="' + facets[f][0].label + '" style="display: none;"><ul class="search__results" /></div>';
+        }
+        $resultsContainer.append(panels).find('.search__facets').append(tabs);
+
+        _bindFacets();
+    };
+
+    // Generate Pagination
+    var _renderPagination = function (totalResults, startIndex, nextQuery, previousQuery) {
+        var $searchResults = $('.search__results-facet.active');
+
+        if (totalResults > 10) {
+            var pagination = '',
+                next = '', prev = '',
+                current = Math.round(startIndex / 10) + 1,
+                totalPgs = Math.ceil(Math.min(10, totalResults / 10));
+
+            // If Pagination doesn't exist, add into search container
+            if(!$searchResults.find('.cse-pagination').length) {
+                $searchResults.append('<ul class="cse-pagination" />')
+            }
+            // Build Pagination if true
+            if ($('.search__results-container').data('cse-pagination-numeric')) {
+                for (var p = 1; p <= totalPgs; p++) {
+                    pagination += '<li' + ((p === current) ? ' class="active"': '') + '><a href="#" data-cse-startIndex="' + (p == 1 ? p : ((p-1) * 10) + 1) + '">' + p + '</a></li>';
+                }
+            }
+            // Build Next/Prev
+            if ($('.search__results-container').data('cse-pagination')) {
+                next = ((nextQuery.length && nextQuery[0].startIndex < 101) ? "<li><a href=\"#\" class=\"cse-pagination__next\" aria-label=\"" + config.locale[config.lang].pagination.next + "\" data-cse-startindex=\"" + nextQuery[0].startIndex + "\">&raquo;</a></li>" : "<li><span class=\"cse-pagination__next disabled\">&raquo;</span></li>");
+                prev = ((previousQuery.length) ? "<li><a href=\"#\" class=\"cse-pagination__prev\" aria-label=\"" + config.locale[config.lang].pagination.prev + "\" data-cse-startindex=\"" + previousQuery[0].startIndex + "\">&laquo;</a></li>" : "<li><span class=\"cse-pagination__prev disabled\">&laquo;</span></li>");
+            }
+
+            $searchResults.find('.cse-pagination').html(prev + pagination + next);
+
+            _bindPagination();
+        }
+        else {
+            // If no pages are needed, remove pagination
+            if ($searchResults.find('.cse-pagination').length) {
+                $searchResults.find('.cse-pagination').empty();
+            }
+        }
+    };
+
+    // Metadata
+    var _renderSearchMeta = function (totalResults, searchTime) {
+        var searchMetaHtml,
+            displayTotal = Math.min(totalResults, 100),
+            $searchMeta = $resultsContainer.find('.search__metadata'),
+            searchMeta = "",
+            searchSort = "";
+
+        if (!$searchMeta.length) {
+            // Render HTML
+            searchMeta = [
+              '<div class="search__metadata-qresults">',
+                '<span>' + config.locale[config.lang].searchMetaData.replace("{{total}}", displayTotal).replace("{{time}}", searchTime) + '</span>',
+              '</div>',
+            ].join("\n");
+            if ($resultsContainer.data('cse-sort')) {
+                searchSort = [
+                  '<div class="search__orderby">',
+                    '<span id="">' + config.locale[config.lang].sortByLabel + ':</span>',
+                    '<button id="gcse__button" class="search__orderby-button" type="button" name="button" aria-haspopup="listbox" aria-labelledby="gcse__button" aria-expanded="false">Relevance</button>',
+                    '<ul id="gcse__menu" class="search__orderby-menu" tabindex="-1" role="listbox" aria-labelledby="" aria-activedescendant="gcse__relevance" style="display: none;">',
+                      '<li id="gcse__relevance" class="active" role="option" data-val="relevance" tabindex="-1">Relevance</li>',
+                      '<li id="gcse__date" role="option" data-val="date" tabindex="-1">Date</li>',
+                    '</ul>',
+                  '</div>'
+                ].join("\n");
+            }
+            searchMeta = '<div class="search__metadata">' + searchMeta + searchSort + '</div>'
+
+            if ($resultsContainer.data('cse-facets')) {
+                $resultsContainer.find('.search__facets').after(searchMeta);
+            } else {
+                $resultsContainer.prepend(searchMeta);
+            }
+
+            _bindOrderBy();
+        } else {
+            // Update Text
+            $searchMeta.find('.search__totalresults').text(displayTotal);
+            $searchMeta.find('.search__totaltime').text(searchTime);
+        }
+    };
+
+    // Function _renderSearchResults
+    // Renders the Retrieve results to the user
+    var _renderSearchResults = function (results, facet) {
+        facet = facet || "all";
+
+        var _generateResults = function (content, totalResults, searchTime, facets, queryTerm) {
+
+            // Generate Facet
+            if (isInit && $resultsContainer.data('cse-facets') && facets.length) {
+                var currentFacet = queryTerm.split(':more:');
+                isInit = false;
+                _renderFacets(facets, (currentFacet.length > 1) ? currentFacet[1] : "all");
+            } else if (isInit) {
+                isInit = false;
+                var defaultFacet = $resultsContainer.data("cse-facet-default") || getParameterByName("facet") || "all";
+                $('.search__results-container').append('<div class="search__results-facet active" data-facet="' + defaultFacet + '"><ul class="search__results" /></div>');
+            }
+
+            if ($resultsContainer.data('cse-facets')) {
+                $('.search__results-facet').hide();
+                $resultsContainer.find('[data-facet="' + facet + '"] .search__results').html(content);
+                $resultsContainer.find('[data-facet="' + facet + '"]').show().animate({ 'opacity': '1' }, 200);
+            } else {
+                $('.search__results-container').find('.search__results').html(content);
+                $resultsContainer.find('[data-facet="' + facet + '"]').animate({ 'opacity': '1' }, 200);
+            }
+
+            $resultsContainer.find('[data-facet="' + facet + '"]')
+                .data("totalresults", totalResults)
+                .data("searchtime", searchTime);
+        };
+
+        $.when(results).then(function (data) {
+            data.facets = cxFacets;
+
+            if (data.content) {
+                _generateResults(data.content, data.totalResults, data.formattedSearchTime, data.facets, data.queryTerm);
+            } else {
+                // Back up Message
+                console.log("No Results");
+                var activeFacet = $resultsContainer.find('.search__results-facet.active').data('facet') || "all",
+                    facetMsg = (activeFacet.match(new RegExp(config.locale[config.lang].errors.noResults.regExp, ""))) ? activeFacet : "all";
+
+                data.totalResults = 0, data.formattedSearchTime = "0.0";
+                _generateResults('<li>' + config.locale[config.lang].errors.noResults[facetMsg] + '</li>', data.totalResults, data.formattedSearchTime, data.facets, data.queryTerm);
+            }
+
+            // Render Search Results Metadata
+            _renderSearchMeta(data.totalResults, data.formattedSearchTime);
+
+            if ($('.search__results-container').data('cse-pagination') || $('.search__results-container').data('cse-pagination-numeric')) {
+                // Render Pagination
+                _renderPagination(data.totalResults, data.startIndex, data.nextQuery, data.previousQuery);
+            }
+        }, function () {
+            // Ajax Failure
+            _generateResults('<li>' + config.locale[config.lang].errors.ajaxRetrieval + '</li>', 0, "0.0", [], "");
+        });
+    };
+
+    /****
+      Public Functions
+    ****/
+    // Function getFacets
+    // Retrieve List of Faceted Search Filters for current Search Engine
+    var getFacets = function (results, defaultFacet, isQueryProvided) {
+        $.ajax({
+            url: "https://www.googleapis.com/customsearch/v1?key=" + config.key + "&cx=" + config.locale[config.lang].cx,
+            method: 'GET',
+            dataType: 'jsonp',
+            data: {
+                q: "infragistics",
+                fields: config.fieldsFacet
+            }
+        })
+        .then(
+          function (data) {
+              cxFacets = ((data.context) ? data.context.facets : []);
+              if (isQueryProvided) _renderSearchResults(results, defaultFacet);
+              return true;
+          },
+          // XMLHttpRequest, textStatus, errorThrown
+          function (xhr, status, errorThrown) {
+              if (isQueryProvided) _renderSearchResults(results, defaultFacet);
+              return false;
+          }
+        );
+    };
+
+    // Function invokeSearch
+    // Retrieve Search results based on a given query
+    var invokeSearch = function (query) {
+        var results, result = '', context;
+
+        // Retrieve and Return Results
+        return $.ajax(query)
+        .then(
+          function (data) {
+              if (!data.error) {
+                  results = data.items;
+                  facets = cxFacets;
+
+                  var totalResults = data.searchInformation.totalResults || 0,
+                      formattedSearchTime = data.searchInformation.formattedSearchTime || "0.0",
+                      startIndex = data.queries.request[0].startIndex || 1,
+                      nextPage = data.queries.nextPage || [],
+                      previousPage = data.queries.previousPage || [],
+                      r = 0;
+
+                  for (r in results) {
+                      result += '<li>';
+                      result += '<span class="search__results-title"><a href="' + results[r].link + '">' + results[r].htmlTitle + '</a></span>';
+                      result += '<span class="search__results-link">' + results[r].htmlFormattedUrl + '</span>';
+                      result += '<span class="search__results-description">' + results[r].htmlSnippet.replace(/<br>|<br \/>/g, "") + '</span>';
+                      result += '</li>';
+                  }
+
+                  return { success: true, queryTerm: query.data.q, content: result, facets: facets, totalResults: totalResults, formattedSearchTime: formattedSearchTime, startIndex: startIndex, nextQuery: nextPage, previousQuery: previousPage };
+              } else {
+                  var error = data.error;
+                  console.log(error);
+                  console.error(error.code + ' error: (' + error.errors[0].reason + ') ' + error.errors[0].message);
+                  return { success: false, queryTerm: query.data.q, content: null, facets: [], totalResults: 0, formattedSearchTime: "0.0", startIndex: 1, nextQuery: [], previousQuery: [] };
+              }
+
+          },
+          // XMLHttpRequest, textStatus, errorThrown
+          function (xhr, status, errorThrown) {
+              console.error('Error Retrieving Results during AJAX Request');
+              console.error(errorThrown + '\n' + status + '\n' + xhr);
+              return false;
+          }
+        );
+    };
+
+    // On Initial
+    var init = function () {
+        $resultsContainer = $('.search__results-container');
+        config = _getConfiguration();
+
+        var q = getParameterByName("q");
+        defaultFacet = $resultsContainer.data("cse-facet-default") || getParameterByName("facet") || "all",
+        start = getParameterByName("start") || 1;
+
+        _bindSearch();
+
+        // Get Search Results if query exists on load
+        if (q && $resultsContainer.length) {
+            //Populate Search Input with search query
+            $('.search__input[name="q"]').prop('value', q);
+
+            var query = _generateQuery({
+                q: _generateQueryTerm(q, defaultFacet),
+                start: start
+            });
+            var results = searchUtility.search(query);
+
+            searchUtility.getFacets(results, defaultFacet, true);
+        } else if ($resultsContainer.length && $resultsContainer.data("cse-facets")) {
+            searchUtility.getFacets(results, defaultFacet, false);
+        }
+    };
+
+    return {
+        init: init,
+        search: invokeSearch,
+        getFacets: getFacets
+    }
+})(jQuery);

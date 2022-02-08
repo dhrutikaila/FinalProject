@@ -1,0 +1,32 @@
+<body>
+    <div class="container">
+        <br><br>
+        <img src="../../../assets/Playlist.png" alt="">
+        <br><br>
+
+
+    </div>
+    <hr>
+    <div class="text-right">
+        <h4 class="text-light" (click)="btnClick2()" type="submit">Find More &nbsp;&nbsp;</h4>
+        <br><br>
+    </div>
+</body>
+<div class="container">
+    <h4 class="text-light">Recommended</h4>
+    <p class="text-light">Based on title of playList</p>
+    <table class="table table-dark table-hover">
+
+        <tbody>
+            <tr *ngFor="let GetAlbums of playlists">
+
+                <td>{{ GetAlbums.title }}</td>
+
+                <td> <button (click)="btnClick2();" class="btn btn-success"><i
+                            class='fa fa-play-circle fa-2x'></i></button></td>
+                <td> <button (click)="deletePl(GetAlbums.playlistID)" class="btn btn-success"><i
+                            class='fa fa-minus-circle fa-2x'></i></button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
