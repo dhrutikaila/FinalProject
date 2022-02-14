@@ -17,5 +17,12 @@ export class UsersComponent implements OnInit {
 
   ngOnInit(): void {
   }
-
+  deletePl(id: any) {
+    if (confirm('Are you sure to Delete Profile?')) {
+      this.playlist.deleteprofile(id)
+        .subscribe(data => {
+          this.playlists();
+        });
+    }
+  }
 }

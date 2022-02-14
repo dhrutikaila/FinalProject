@@ -21,4 +21,7 @@ export class YourLibraryComponent {
   btnClick1 = function () {
     this.router.navigateByUrl('/song');
   };
+  btnClick2 = function () {
+    this.router.navigateByUrl('/podcast');
+  };
 }

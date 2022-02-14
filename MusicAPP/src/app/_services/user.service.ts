@@ -35,7 +35,7 @@ export class UserService {
       Password: user.Password,
     }
 
-    return this.http.post('http://restapi.adequateshop.com/api/authaccount/login', Bodyw);
+    return this.http.post(this.rootUrl + '/api/Authentication/login', Bodyw);
   }
 
   AddPlaylists(playlists: playlist) {
@@ -55,6 +55,11 @@ export class UserService {
 
     return this.http.get(this.rootUrl + '/api/Album');
   }
+  getPodcast() {
+
+    return this.http.get(this.rootUrl + '/api/Podcast');
+  }
+
   GetSong() {
 
     return this.http.get(this.rootUrl + '/api/SONG');
@@ -67,9 +72,20 @@ export class UserService {
   }
 
   getProfile() {
-    return this.http.get('https://localhost:44305/api/ProfileControler/api/ProfileControler');
+    return this.http.get('https://localhost:44305/api/ProfileControler');
   }
 
+
+  deleteprofile(id) {
+
+    return this.http.delete('https://localhost:44305/api/ProfileControler?id=' + id);
+
+  }
+  deleteSong(id) {
+
+    return this.http.delete('https://localhost:44305/api/SONG?id=' + id);
+
+  }
 }
 
 

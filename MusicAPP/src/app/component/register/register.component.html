@@ -24,10 +24,14 @@ password: required, minLength=6
                                             <i class="fa fa-user fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
                                                 <input name="username" #UserName="ngModel" [(ngModel)]="user.username"
-                                                    type="text" id="form3Example1c" class="form-control validate"
-                                                    required />
-                                                <label data-error="required filed" class="form-label"
-                                                    for="form3Example1c">UserName</label>
+                                                    [ngClass]="{ 'is-invalid': f.submitted && UserName.invalid }"
+                                                    type="text" id="form3Example1c" class="form-control" required />
+                                                <label class="form-label" for="form3Example1c">UserName</label>
+
+                                                <!--ERROR-->
+                                                <div class="text-danger mt-1" *ngIf="f.submitted && UserName.invalid">
+                                                    <p *ngIf="UserName.errors.required">Name value is required.</p>
+                                                </div>
                                             </div>
                                         </div>
 
@@ -35,8 +39,15 @@ password: required, minLength=6
                                             <i class="fa fa-envelope fa-lg me-3 fa-fw"></i>
                                             <div class="form-outline flex-fill mb-0">
                                                 <input name="email" [(ngModel)]="user.email" #Email="ngModel"
-                                                    type="email" id="form32Example3c" class="form-control" />
+                                                    [ngClass]="{'is-invalid': f.submitted && Email.invalid }"
+                                                    type="email" id="form32Example3c" class="form-control" required />
+
                                                 <label class="form-label" for="form3Example3c">Your Email</label>
+                                                <!--ERROR-->
+                                                <div *ngIf="f.submitted && Email.invalid" class="invalid-feedback">
+                                                    <div *ngIf="Email.errors.required">Email is required.</div>
+                                                    <div *ngIf="Email.errors.email">Please provide valid email.</div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="d-flex flex-row align-items-center mb-4">
@@ -54,8 +65,16 @@ password: required, minLength=6
                                             <div class="form-outline flex-fill mb-0">
                                                 <input name="Password" [(ngModel)]="user.Password" #Password="ngModel"
                                                     type="password" id="form3Example4c" class="form-control"
-                                                    autocomplete="on" />
+                                                    [ngClass]="{ 'is-invalid': f.submitted && Password.invalid }"
+                                                    minlength="6" autocomplete="on" required />
                                                 <label class="form-label" for="form3Example4c">Password</label>
+                                                <!--error-->
+                                                <div *ngIf="f.submitted && Password.invalid" class="invalid-feedback">
+                                                    <div *ngIf="Password.errors.required">Set a strong password.</div>
+                                                    <div *ngIf="Password.errors.minlength">Minimum 6 characters
+                                                        required.</div>
+                                                </div>
+
                                             </div>
                                         </div>
 

@@ -1,0 +1,28 @@
+<div class="container">
+    <br><br>
+    <form #p="ngForm" (ngSubmit)="btnSong(p)" class="bg-success">
+        <br>
+        <label for=""> <b>Song Name</b> </label>
+        <input name="Name" #Name="ngModel" [(ngModel)]="songs.Name" type="text" required>
+        <br><br>
+        <label for=""> <b>Picture</b> </label>
+        <input name="Picture" #Picture="ngModel" [(ngModel)]="songs.Picture" type="file" required>
+
+        <label for=""> <b>Audio file</b> </label>
+        <input name="SongFile" #SongFile="ngModel" [(ngModel)]="songs.SongFile" type="file" required>
+
+        <br><br>
+        <label for=""> <b>CreatedOn</b> </label>
+        <input type="datetime-local" name="CreatedOn" #CreatedOn="ngModel" [(ngModel)]="songs.CreatedOn" id="" required>
+        <label for=""> <b>ViewCount</b> </label>
+        <input type="number" name="ViewCount" #ViewCount="ngModel" [(ngModel)]="songs.ViewCount" id="">
+        <label for=""> <b>Downloads</b> </label>
+        <input type="number" name="Downloads" #Downloads="ngModel" [(ngModel)]="songs.Downloads" id="">
+        <br><br>
+        <div class="text-center">
+            <button class="btn btn-primary">Playlist</button>
+        </div>
+    </form>
+    <br><br>
+
+</div>

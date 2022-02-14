@@ -9,7 +9,10 @@
 
 
 import { Component, OnInit } from '@angular/core';
+import { NgForm } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { song } from 'src/app/models/Song';
+import { AuthService } from 'src/app/_services/auth.service';
 import { UserService } from '../../_services/user.service';
 @Component({
   selector: 'app-board-admin',
@@ -17,16 +20,25 @@ import { UserService } from '../../_services/user.service';
   styleUrls: ['./board-admin.component.css']
 })
 export class BoardAdminComponent implements OnInit {
-  public data: any;
+  songs: any;
 
+  constructor(private routes: Router, private userservice: UserService) {
 
-  constructor(private userService: UserService, private routes: Router) { }
+  }
 
   ngOnInit() {
 
   }
+
   onsubmit() {
     return this.routes.navigateByUrl('/user')
 
   }
+  btnsubmit() {
+    return this.routes.navigateByUrl('/songup')
+
+  }
+
 }
+
+

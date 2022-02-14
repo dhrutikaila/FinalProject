@@ -6,37 +6,38 @@ import { HomeComponent } from './component/home/home.component';
 import { ProfileComponent } from './component/profile/profile.component';
 
 import { SearchComponent } from './component/search/search.component';
-import { BoardAdminComponent } from './component/board-admin/board-admin.component';
+
 import { LikedSongsComponent } from './component/liked-songs/liked-songs.component';
 import { YourLibraryComponent } from './component/your-library/your-library.component';
 import { CreatePlaylistComponent } from './component/create-playlist/create-playlist.component';
 
 import { SongComponent } from './component/song/song.component';
 import { AuthGuard } from './_services/auth.guard';
-import { UsersComponent } from './component/board-admin/users/users.component';
 
 import { LoginComponent } from './component/login/login.component';
 import { AddComponent } from './component/add/add.component';
+import { PodcastComponent } from './component/podcast/podcast.component';
 
 
 const routes: Routes = [
   {
     path: 'home', component: HomeComponent,
   },
+
   {
     path: 'song', component: SongComponent,
   },
 
   { path: 'register', component: RegisterComponent },
   { path: 'Add', component: AddComponent },
+
   { path: 'login', component: LoginComponent },
   { path: 'profile', component: ProfileComponent },
   { path: 'search', component: SearchComponent },
-
-  { path: 'admin', component: BoardAdminComponent, children: [{ path: 'user', component: UsersComponent }] },
-  { path: 'liked', component: LikedSongsComponent, canActivate: [AuthGuard] },
-  { path: 'your', component: YourLibraryComponent, canActivate: [AuthGuard] },
-  { path: 'create', component: CreatePlaylistComponent, canActivate: [AuthGuard] },
+  { path: 'podcast', component: PodcastComponent },
+  { path: 'liked', component: LikedSongsComponent, canActivate: [] },
+  { path: 'your', component: YourLibraryComponent, canActivate: [] },
+  { path: 'create', component: CreatePlaylistComponent, canActivate: [] },
   { path: '', redirectTo: 'home', pathMatch: 'full' }
 ];
 

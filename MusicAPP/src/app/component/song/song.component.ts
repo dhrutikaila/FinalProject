@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { song } from 'src/app/models/Song';
 import { UserService } from '../../_services/user.service';
 
 
@@ -9,15 +10,27 @@ import { UserService } from '../../_services/user.service';
   styleUrls: ['./song.component.css']
 })
 export class SongComponent {
-  songs: any;
-
-  constructor(private song: UserService, private rotes: Router) {
+  song: any;
+  songs: song;
+  constructor(private userservice: UserService, private rotes: Router) {
+    userservice.GetSong().subscribe((data) => {
+      //console.warn("data", data);
+      this.song = data
+    });
 
   }
   btnClick1 = function () {
     this.rotes.navigateByUrl('/search');
-  };
 
+  };
+  btnclick(id: any) {
+    if (confirm('Are you sure to Delete Profile?')) {
+      this.userservice.deleteSong(id)
+        .subscribe(data => {
+          this.song();
+        });
+    }
+  }
 }
 
 

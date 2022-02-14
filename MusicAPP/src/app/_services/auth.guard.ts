@@ -17,7 +17,9 @@ export class AuthGuard implements CanActivate {
       alert("Please Login to Our site")
       this.router.navigateByUrl("/login");
     }
-
+    else {
+      this.router.navigateByUrl("/create")
+    }
     return this.Authguardservice.gettoken();
   }
 

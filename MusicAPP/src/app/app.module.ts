@@ -9,7 +9,6 @@ import { HomeComponent } from './component/home/home.component';
 
 import { RegisterComponent } from './component/register/register.component';
 import { ProfileComponent } from './component/profile/profile.component';
-import { BoardAdminComponent } from './component/board-admin/board-admin.component';
 
 import { SearchComponent } from './component/search/search.component';
 
@@ -21,12 +20,13 @@ import { UserService } from './_services/user.service';
 import { ToastrModule } from 'ngx-toastr';
 import { AuthService } from './_services/auth.service';
 import { AuthGuard } from './_services/auth.guard';
-import { UsersComponent } from './component/board-admin/users/users.component';
 
 import { LoginComponent } from './component/login/login.component';
 
-
+import { AdminModule } from './admin/admin.module';
 import { AddComponent } from './component/add/add.component';
+import { PodcastComponent } from './component/podcast/podcast.component';
+
 
 @NgModule({
   declarations: [
@@ -34,15 +34,17 @@ import { AddComponent } from './component/add/add.component';
     HomeComponent,
     RegisterComponent,
     ProfileComponent,
-    BoardAdminComponent,
+
     SearchComponent,
     YourLibraryComponent,
     CreatePlaylistComponent,
     LikedSongsComponent,
     SongComponent,
-    UsersComponent,
+
     LoginComponent,
     AddComponent,
+    PodcastComponent,
+
 
   ],
   imports: [
@@ -52,7 +54,7 @@ import { AddComponent } from './component/add/add.component';
     ReactiveFormsModule,
     HttpClientModule,
     BrowserAnimationsModule,
-
+    AdminModule,
 
     ToastrModule.forRoot()
   ],

@@ -28,7 +28,7 @@ export class AddComponent implements OnInit {
     this.userservice.AddPlaylists(form.value).subscribe((result: any) => {
       if (result.Succeeded == true) {
         this.resetForm(form);
-        this.toaster.success('User registration successful');
+        this.toaster.success('successful');
       }
       this.router.navigateByUrl('/create');
     })

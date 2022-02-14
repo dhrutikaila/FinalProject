@@ -3,17 +3,15 @@ import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { login } from 'src/app/models/login';
-import { User } from 'src/app/models/user';
 import { UserService } from 'src/app/_services/user.service';
 
 @Component({
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  selector: 'app-admin-login',
+  templateUrl: './admin-login.component.html',
+  styleUrls: ['./admin-login.component.css']
 })
-export class LoginComponent implements OnInit {
+export class AdminLoginComponent implements OnInit {
   user: login;
-
   constructor(private router: Router, private userservice: UserService, private toaster: ToastrService) { }
 
   ngOnInit(): void {
