@@ -1,12 +1,10 @@
-# Musicsite
-
+# Musicsit
 
 Aim:
 In recent times, the usage of music streaming applications has increased
 and hence there arises a need to create and maintain a relational database
 and store information of the artists, users, songs, and podcasts. We also
 need to account for the storage of subscription and payment details.
-
 
 
  Description:
@@ -55,6 +53,9 @@ name.
 It contains subscription id, plan id, user id and duration.
 22. PaymentMethod: It stores paymentmethod id and payment type.
 23. Payments: It stores the payment details of subscribers.
+
+
+![imp case](https://user-images.githubusercontent.com/88370858/153806428-9d3a8a8c-fc99-4213-b826-13db1e9f2a63.PNG)
  References:
 1. https://open.spotify.com/
 2. https://gaana.com/
