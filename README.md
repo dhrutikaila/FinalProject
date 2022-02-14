@@ -1,4 +1,4 @@
-# Musicsit
+# Musicsite
 
 Aim:
 In recent times, the usage of music streaming applications has increased
