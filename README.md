@@ -1,9 +1,14 @@
-# FinalProject
+# Musicsite
+
+
 Aim:
 In recent times, the usage of music streaming applications has increased
 and hence there arises a need to create and maintain a relational database
 and store information of the artists, users, songs, and podcasts. We also
 need to account for the storage of subscription and payment details.
+
+
+
  Description:
 The proposed database for music streaming application stores details of
 music library which includes artists, albums, songs, podcast and genres. It
