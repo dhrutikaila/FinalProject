@@ -7,6 +7,10 @@ and store information of the artists, users, songs, and podcasts. We also
 need to account for the storage of subscription and payment details.
 
 
+
+[Work flow.pdf](https://github.com/dhrutikaila/FinalProject/files/8058139/Work.flow.pdf)
+
+
  Description:
 The proposed database for music streaming application stores details of
 music library which includes artists, albums, songs, podcast and genres. It
@@ -56,6 +60,11 @@ It contains subscription id, plan id, user id and duration.
 
 
 ![imp case](https://user-images.githubusercontent.com/88370858/153806428-9d3a8a8c-fc99-4213-b826-13db1e9f2a63.PNG)
+
+CONCLUSION: 
+
+Music affects you in many ways; however, it primarily affects your brain, through which the rest of your body can be affected. Music is an excellent therapeutic tool for the brain, because it activates so many parts of it. Music’s pitch, rhythm, meter and timbre are processed in both the left and right hemispheres of the brain. Listening to music triggers the areas of the brain that have to do with spatial reasoning. Music can even alter the brain if it is studied from a young age. Research shows that musical training in children can improve the activity of important neural systems. In fact, if someone receives a lot of music training before they turn 15 (or go through puberty), there is a chance that they will develop perfect pitch. Certain scientists think that musicians who have had early training use their brains differently than non-musicians.
+
  References:
 1. https://open.spotify.com/
 2. https://gaana.com/
